@@ -355,7 +355,7 @@ def main(arg=""):
         ]
 
         if x < -D51LENGTH:
-            return -1
+            return curses.ERR
         y = ROWS // 2 - 5
         a = 0
         if fly:
@@ -369,7 +369,7 @@ def main(arg=""):
             add_man(y + 2, x + 43)
             add_man(y + 2, x + 47)
         add_smoke(y - 1, x + D51FUNNEL)
-        return 1
+        return curses.OK
 
     def add_c51(x):
         c51 = [
@@ -474,7 +474,7 @@ def main(arg=""):
         ]
 
         if x < -C51LENGTH:
-            return -1
+            return curses.ERR
         y = ROWS // 2 - 5
         a = 0
         if fly:
@@ -487,7 +487,7 @@ def main(arg=""):
             add_man(y + 3, x + 45)
             add_man(y + 3, x + 49)
         add_smoke(y - 1, x + C51FUNNEL)
-        return 1
+        return curses.OK
 
     def add_sl(x):
         sl = [
@@ -502,7 +502,7 @@ def main(arg=""):
         car = [LCAR1, LCAR2, LCAR3, LCAR4, LCAR5, LCAR6, DELLN]
 
         if x < -LOGOLENGTH:
-            return -1
+            return curses.ERR
         y = ROWS // 2 - 3
         a, b, c = 0, 0, 0
         if fly:
@@ -520,19 +520,32 @@ def main(arg=""):
             add_man(y + 1 + c, x + 66)
             add_man(y + 1 + c, x + 74)
         add_smoke(y - 1, x + LOGOFUNNEL)
-        return 1
+        return curses.OK
 
     def addstr(y, x, string):
-        return stdscr.addnstr(y, x, string, (COLS - x) + 1)
+        i = x
+        j = 0
+        while i < 0:
+            i += 1
+            j += 1
+            if j == len(string):
+                return curses.ERR
+        while j < len(string):
+            i += 1
+            j += 1
+            try:
+                if stdscr.addch(y, i, string[j]) == curses.ERR:
+                    return curses.ERR
+            except curses.error:
+                return curses.ERR
+            except IndexError:
+                return curses.ERR
+        return curses.OK
 
     stdscr = curses.initscr()
-    curses.start_color()
-    curses.cbreak()
-    curses.curs_set(0)
-    curses.use_default_colors()
     curses.noecho()
+    curses.curs_set(0)
     stdscr.nodelay(True)
-    stdscr.keypad(1)
     stdscr.leaveok(True)
     stdscr.scrollok(False)
     stdscr.timeout(40)
@@ -545,29 +558,25 @@ def main(arg=""):
     ROWS = stdscr.getmaxyx()[0] - 1
     COLS = stdscr.getmaxyx()[1] - 1
 
-    # add_smoke(ROWS // 2, COLS - 10)
-    # import time
-    # time.sleep(1)
-    for i in range(COLS, -COLS, -1):
+    i = COLS - 1
+    while True:
         try:
             if little:
-                if add_sl(i) == -1:
+                if add_sl(i) == curses.ERR:
                     break
             elif c51:
-                if add_c51(i) == -1:
+                if add_c51(i) == curses.ERR:
                     break
             else:
-                #if add_d51(i) == -1:
-                #    break
-                if add_smoke(ROWS // 2, i) == -1:
-                    break
+                if add_d51(i) == curses.ERR:
+                   break
             stdscr.getch()
             stdscr.refresh()
         except curses.error as e:
-            # continue
             raise e
         except KeyboardInterrupt:
             return end()
+        i -= 1
     return end()
 
 
@@ -576,3 +585,8 @@ if __name__ == "__main__":
         main(sys.argv[1][1:])
     else:
         main()
+
+
+# TODO:
+# make smoke length of full train, not just engine
+# make smoke opening parentheses show up
