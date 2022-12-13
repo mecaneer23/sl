@@ -368,7 +368,7 @@ def main(arg=""):
         if alert:
             add_man(y + 2, x + 43)
             add_man(y + 2, x + 47)
-        add_smoke(y - 1, x + D51FUNNEL)
+        add_smoke(y - 1, x + D51FUNNEL - 1)
         return curses.OK
 
     def add_c51(x):
@@ -531,8 +531,6 @@ def main(arg=""):
             if j == len(string):
                 return curses.ERR
         while j < len(string):
-            i += 1
-            j += 1
             try:
                 if stdscr.addch(y, i, string[j]) == curses.ERR:
                     return curses.ERR
@@ -540,6 +538,8 @@ def main(arg=""):
                 return curses.ERR
             except IndexError:
                 return curses.ERR
+            i += 1
+            j += 1
         return curses.OK
 
     stdscr = curses.initscr()
@@ -551,8 +551,8 @@ def main(arg=""):
     stdscr.timeout(40)
 
     alert = "a" in arg
-    little = "F" in arg
-    fly = "l" in arg
+    little = "l" in arg
+    fly = "F" in arg
     c51 = "c" in arg
 
     ROWS = stdscr.getmaxyx()[0] - 1
