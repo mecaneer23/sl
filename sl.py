@@ -585,8 +585,3 @@ if __name__ == "__main__":
         main(sys.argv[1][1:])
     else:
         main()
-
-
-# TODO:
-# make smoke length of full train, not just engine
-# make smoke opening parentheses show up
