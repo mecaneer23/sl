@@ -356,7 +356,7 @@ def main(arg=""):
 
         if x < -D51LENGTH:
             return curses.ERR
-        y = ROWS // 2 - 5
+        y = ROWS // 2 - 4
         a = 0
         if fly:
             y = (x // 7) + ROWS - (COLS // 7) - D51HEIGHT
