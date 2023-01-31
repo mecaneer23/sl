@@ -489,7 +489,7 @@ def main(arg=""):
         add_smoke(y - 1, x + C51FUNNEL)
         return curses.OK
 
-    def add_sl(x):
+    def add_sl(x, count):
         sl = [
             [LOGO1, LOGO2, LOGO3, LOGO4, LWHL11, LWHL12, DELLN],
             [LOGO1, LOGO2, LOGO3, LOGO4, LWHL21, LWHL22, DELLN],
@@ -500,19 +500,21 @@ def main(arg=""):
         ]
         coal = [LCOAL1, LCOAL2, LCOAL3, LCOAL4, LCOAL5, LCOAL6, DELLN]
         car = [LCAR1, LCAR2, LCAR3, LCAR4, LCAR5, LCAR6, DELLN]
-
+        count = 2 if alert else count
         if x < -LOGOLENGTH:
             return curses.ERR
         y = ROWS // 2 - 3
         a, b, c = 0, 0, 0
+        b_mod = 0
         if fly:
             y = (x // 6) + ROWS - (COLS // 6) - LOGOHEIGHT
             a, b, c = 2, 4, 6
         for i in range(LOGOHEIGHT + 1):
             addstr(y + i, x, sl[(LOGOLENGTH + x) // 3 % LOGOPATTERNS][i])
             addstr(y + i + a, x + 21, coal[i])
-            addstr(y + i + b, x + 42, car[i])
-            addstr(y + i + c, x + 63, car[i])
+            for car_index in range(count):
+                b_mod = b + (2 * car_index)
+                addstr(y + i + b_mod, x + (car_index + 2) * 21, car[i])
         if alert:
             add_man(y + 1, x + 14)
             add_man(y + 1 + b, x + 45)
@@ -522,7 +524,7 @@ def main(arg=""):
         add_smoke(y - 1, x + LOGOFUNNEL)
         return curses.OK
 
-    def addstr(y, x, string):
+    def addstr(y: int, x: int, string: str):
         i = x
         j = 0
         while i < 0:
@@ -551,7 +553,7 @@ def main(arg=""):
     stdscr.timeout(40)
 
     alert = "a" in arg
-    little = "l" in arg
+    little = arg.count("l")
     fly = "F" in arg
     c51 = "c" in arg
 
@@ -561,8 +563,8 @@ def main(arg=""):
     i = COLS - 1
     while True:
         try:
-            if little:
-                if add_sl(i) == curses.ERR:
+            if little > 0:
+                if add_sl(i, little) == curses.ERR:
                     break
             elif c51:
                 if add_c51(i) == curses.ERR:
