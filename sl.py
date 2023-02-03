@@ -513,7 +513,8 @@ def main(arg=""):
             addstr(y + i, x, sl[(LOGOLENGTH + x) // 3 % LOGOPATTERNS][i])
             addstr(y + i + a, x + 21, coal[i])
             for car_index in range(count):
-                b_mod = b + (2 * car_index)
+                if fly:
+                    b_mod = b + (2 * car_index)
                 addstr(y + i + b_mod, x + (car_index + 2) * 21, car[i])
         if alert:
             add_man(y + 1, x + 14)
