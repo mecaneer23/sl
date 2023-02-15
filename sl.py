@@ -501,7 +501,7 @@ def main(arg=""):
         coal = [LCOAL1, LCOAL2, LCOAL3, LCOAL4, LCOAL5, LCOAL6, DELLN]
         car = [LCAR1, LCAR2, LCAR3, LCAR4, LCAR5, LCAR6, DELLN]
         count = 2 if alert else count
-        LOGOLENGTH = 21 * 2 + 21 * count
+        LOGOLENGTH = 21 * (count + 2)
         if x < -LOGOLENGTH:
             return curses.ERR
         y = ROWS // 2 - 3
