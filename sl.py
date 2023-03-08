@@ -536,7 +536,7 @@ def main(arg=""):
                 return curses.ERR
         while j < len(string):
             try:
-                if stdscr.addch(y, i, string[j]) == curses.ERR:
+                if stdscr.addch(y, i, string[j], curses.color_pair(1 if red else 0)) == curses.ERR:
                     return curses.ERR
             except curses.error:
                 return curses.ERR
@@ -547,6 +547,8 @@ def main(arg=""):
         return curses.OK
 
     stdscr = curses.initscr()
+    curses.start_color()
+    curses.use_default_colors()
     curses.noecho()
     curses.curs_set(0)
     stdscr.nodelay(True)
@@ -554,10 +556,13 @@ def main(arg=""):
     stdscr.scrollok(False)
     stdscr.timeout(40)
 
+    curses.init_pair(1, curses.COLOR_RED, -1)
+
     alert = "a" in arg
     little = arg.count("l")
     fly = "F" in arg
     c51 = "c" in arg
+    red = "r" in arg
 
     ROWS = stdscr.getmaxyx()[0] - 1
     COLS = stdscr.getmaxyx()[1] - 1
