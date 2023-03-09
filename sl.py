@@ -205,7 +205,7 @@ SMOKE_DY = [2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 SMOKE_DX = [-2, -1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3]
 
 
-class smoke_class:
+class SmokeClass:
     def __init__(self):
         self.y = 0
         self.x = 0
@@ -256,7 +256,7 @@ def add_man(stdscr, args, y, x):
         addstr(stdscr, args, y + i, x, man[(LOGOLENGTH + x) // 12 % 2][i])
 
 
-smokes = [smoke_class() for _ in range(1000)]
+smokes = [SmokeClass() for _ in range(1000)]
 smoke_sum = 0
 
 
@@ -524,8 +524,8 @@ def add_sl(stdscr, x, args, window):
     coal = [LCOAL1, LCOAL2, LCOAL3, LCOAL4, LCOAL5, LCOAL6, DELLN]
     car = [LCAR1, LCAR2, LCAR3, LCAR4, LCAR5, LCAR6, DELLN]
     count = 2 if args.alert else args.little
-    LOGOLENGTH = 21 * (count + 2)
-    if x < -LOGOLENGTH:
+    logo_length = 21 * (count + 2)
+    if x < -logo_length:
         return curses.ERR
     y = window.rows // 2 - 3
     a, b, c = 0, 0, 0
@@ -534,7 +534,7 @@ def add_sl(stdscr, x, args, window):
         y = (x // 6) + window.rows - (window.cols // 6) - LOGOHEIGHT
         a, b, c = 2, 4, 6
     for i in range(LOGOHEIGHT + 1):
-        addstr(stdscr, args, y + i, x, sl[(LOGOLENGTH + x) // 3 % LOGOPATTERNS][i])
+        addstr(stdscr, args, y + i, x, sl[(logo_length + x) // 3 % LOGOPATTERNS][i])
         addstr(stdscr, args, y + i + a, x + 21, coal[i])
         for car_index in range(count):
             if args.fly:
