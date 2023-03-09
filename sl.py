@@ -43,18 +43,19 @@ D51WHL63 = r"  \_/     \_O=====O=====O=====O/     \_/             "
 
 D51DEL = r"                                                     "
 
-COAL01 = r"                              "
-COAL02 = r"                              "
-COAL03 = r"    _________________         "
-COAL04 = r"   _|                \_____A  "
-COAL05 = r" =|                        |  "
-COAL06 = r" -|                        |  "
-COAL07 = r"__|________________________|_ "
-COAL08 = r"|__________________________|_ "
-COAL09 = r"   |_D__D__D_|  |_D__D__D_|   "
-COAL10 = r"    \_/   \_/    \_/   \_/    "
-
-COALDEL = r"                              "
+coal = [
+    r"                              ",
+    r"                              ",
+    r"    _________________         ",
+    r"   _|                \_____A  ",
+    r" =|                        |  ",
+    r" -|                        |  ",
+    r"__|________________________|_ ",
+    r"|__________________________|_ ",
+    r"   |_D__D__D_|  |_D__D__D_|   ",
+    r"    \_/   \_/    \_/   \_/    ",
+    r"                              ",
+]
 
 LOGOHEIGHT = 6
 LOGOFUNNEL = 4
@@ -212,6 +213,12 @@ class smoke_class:
         self.ptrn = 0
         self.kind = 0
 
+    def update(self, y, x, ptrn, kind):
+        self.y = y
+        self.x = x
+        self.ptrn = ptrn
+        self.kind = kind
+
     def __repr__(self):
         if self.y + self.x + self.ptrn + self.kind == 0:
             return "\b"
@@ -253,10 +260,7 @@ def main(arg=""):
                     SMOKE[smokes[i].kind][smokes[i].ptrn],
                 )
             addstr(y, x, SMOKE[smoke_sum % 2][0])
-            smokes[smoke_sum].y = y
-            smokes[smoke_sum].x = x
-            smokes[smoke_sum].ptrn = 0
-            smokes[smoke_sum].kind = smoke_sum % 2
+            smokes[smoke_sum].update(y, x, 0, smoke_sum % 2)
             smoke_sum += 1
 
     def add_d51(x):
@@ -339,19 +343,6 @@ def main(arg=""):
                 D51WHL63,
                 D51DEL,
             ],
-        ]
-        coal = [
-            COAL01,
-            COAL02,
-            COAL03,
-            COAL04,
-            COAL05,
-            COAL06,
-            COAL07,
-            COAL08,
-            COAL09,
-            COAL10,
-            COALDEL,
         ]
 
         if x < -D51LENGTH:
@@ -457,20 +448,6 @@ def main(arg=""):
                 C51WH64,
                 C51DEL,
             ],
-        ]
-        coal = [
-            COALDEL,
-            COAL01,
-            COAL02,
-            COAL03,
-            COAL04,
-            COAL05,
-            COAL06,
-            COAL07,
-            COAL08,
-            COAL09,
-            COAL10,
-            COALDEL,
         ]
 
         if x < -C51LENGTH:
