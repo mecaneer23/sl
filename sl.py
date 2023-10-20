@@ -3,8 +3,9 @@
 # pylint: disable=missing-class-docstring
 
 import sys
-# import curses
-from tcurses import curses
+import curses
+
+# from tcurses import curses
 
 D51HEIGHT = 10
 D51FUNNEL = 7
@@ -12,13 +13,13 @@ D51LENGTH = 83
 D51PATTERNS = 6
 
 
-D51STR1 =  "      ====        ________                ___________ "
-D51STR2 =  "  _D _|  |_______/        \\__I_I_____===__|_________| "
-D51STR3 =  "   |(_)---  |   H\\________/ |   |        =|___ ___|   "
-D51STR4 =  "   /     |  |   H  |  |     |   |         ||_| |_||   "
-D51STR5 =  "  |      |  |   H  |__--------------------| [___] |   "
-D51STR6 =  "  | ________|___H__/__|_____/[][]~\\_______|       |   "
-D51STR7 =  "  |/ |   |-----------I_____I [][] []  D   |=======|__ "
+D51STR1 = "      ====        ________                ___________ "
+D51STR2 = "  _D _|  |_______/        \\__I_I_____===__|_________| "
+D51STR3 = "   |(_)---  |   H\\________/ |   |        =|___ ___|   "
+D51STR4 = "   /     |  |   H  |  |     |   |         ||_| |_||   "
+D51STR5 = "  |      |  |   H  |__--------------------| [___] |   "
+D51STR6 = "  | ________|___H__/__|_____/[][]~\\_______|       |   "
+D51STR7 = "  |/ |   |-----------I_____I [][] []  D   |=======|__ "
 
 D51WHL11 = "__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y___________|__ "
 D51WHL12 = " |/-=|___|=    ||    ||    ||    |_____/~\\___/        "
@@ -44,7 +45,7 @@ D51WHL61 = "__/ =| o |=-~~\\  /~~\\  /~~\\  /~~\\ ____Y___________|__ "
 D51WHL62 = " |/-=|___|=    ||    ||    ||    |_____/~\\___/        "
 D51WHL63 = "  \\_/      \\_O=====O=====O=====O/      \\_/            "
 
-D51DEL =   "                                                      "
+D51DEL = "                                                      "
 
 COAL01 = "                              "
 COAL02 = "                              "
@@ -240,17 +241,6 @@ class Window:  # pylint: disable=too-few-public-methods
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
-
-
-def end(stdscr, exit_msg=""):
-    try:
-        curses.nocbreak()
-        stdscr.keypad(False)
-        curses.echo()
-        curses.endwin()
-    except curses.error:
-        return "Error in exiting"
-    return exit_msg
 
 
 def add_man(stdscr, args, y, x):
@@ -577,25 +567,17 @@ def addstr(stdscr, args, y: int, x: int, string: str):
     return curses.OK
 
 
-def init(arg=""):
-    stdscr = curses.initscr()
-    curses.start_color()
-    curses.use_default_colors()
-    curses.noecho()
+def init(stdscr):
     curses.curs_set(0)
+    curses.use_default_colors()
+    curses.init_pair(1, curses.COLOR_RED, -1)
     stdscr.nodelay(True)
-    stdscr.leaveok(True)
-    stdscr.scrollok(False)
     stdscr.timeout(40)
 
-    curses.init_pair(1, curses.COLOR_RED, -1)
 
-    args = Args(arg)
+def main(stdscr, args):
+    init(stdscr)
     window = Window(stdscr.getmaxyx()[0] - 1, stdscr.getmaxyx()[1] - 1)
-    return stdscr, args, window
-
-
-def main(stdscr, args, window):
     i = window.cols - 1
     while True:
         try:
@@ -613,14 +595,15 @@ def main(stdscr, args, window):
         except curses.error as e:
             raise e
         except KeyboardInterrupt:
-            return end(stdscr)
+            return
         i -= 1
-    return end(stdscr)
+    return
 
 
 if __name__ == "__main__":
-    main(
-        *init(
+    curses.wrapper(
+        main,
+        Args(
             sys.argv[1][1:] if len(sys.argv) > 1 and sys.argv[1].startswith("-") else ""
-        )
+        ),
     )
