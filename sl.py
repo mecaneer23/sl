@@ -5,8 +5,6 @@
 import sys
 import curses
 
-# from tcurses import curses
-
 D51HEIGHT = 10
 D51FUNNEL = 7
 D51LENGTH = 83
