@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+# pylint: disable=missing-module-docstring, missing-function-docstring
+# pylint: disable=missing-class-docstring
 
 import sys
-import curses
+# import curses
+from tcurses import curses
 
 D51HEIGHT = 10
 D51FUNNEL = 7
@@ -224,7 +227,7 @@ class SmokeClass:
         return f"Instance: {self.ptrn}:{self.kind}"
 
 
-class Args:
+class Args:  # pylint: disable=too-few-public-methods
     def __init__(self, arg):
         self.alert = "a" in arg
         self.little = arg.count("l")
@@ -233,7 +236,7 @@ class Args:
         self.red = "r" in arg
 
 
-class Window:
+class Window:  # pylint: disable=too-few-public-methods
     def __init__(self, rows, cols):
         self.rows = rows
         self.cols = cols
