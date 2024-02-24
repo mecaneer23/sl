@@ -208,26 +208,26 @@ SMOKE_DX = [-2, -1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3]
 
 
 class SmokeClass:
-    def __init__(self):
+    def __init__(self) -> None:
         self.y = 0
         self.x = 0
         self.ptrn = 0
         self.kind = 0
 
-    def update(self, y, x, ptrn, kind):
+    def update(self, y: int, x: int, ptrn: int, kind: int) -> None:
         self.y = y
         self.x = x
         self.ptrn = ptrn
         self.kind = kind
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.y + self.x + self.ptrn + self.kind == 0:
             return "\b"
         return f"Instance: {self.ptrn}:{self.kind}"
 
 
 class Args:  # pylint: disable=too-few-public-methods
-    def __init__(self, arg):
+    def __init__(self, arg: str) -> None:
         self.alert = "a" in arg
         self.little = arg.count("l")
         self.fly = "F" in arg
@@ -236,12 +236,12 @@ class Args:  # pylint: disable=too-few-public-methods
 
 
 class Window:  # pylint: disable=too-few-public-methods
-    def __init__(self, rows, cols):
+    def __init__(self, rows: int, cols: int) -> None:
         self.rows = rows
         self.cols = cols
 
 
-def add_man(stdscr, args, y, x):
+def add_man(stdscr: curses.window, args: Args, y: int, x: int) -> None:
     man = [["", "(O)"], ["Help!", "\\O/"]]
     for i in range(2):
         addstr(stdscr, args, y + i, x, man[(LOGOLENGTH + x) // 12 % 2][i])
@@ -251,7 +251,7 @@ smokes = [SmokeClass() for _ in range(1000)]
 smoke_sum = 0
 
 
-def add_smoke(stdscr, args, y, x):
+def add_smoke(stdscr: curses.window, args: Args, y: int, x: int) -> None:
     global smoke_sum, smokes
     if x % 4 == 0:
         for i in range(smoke_sum):
@@ -271,7 +271,7 @@ def add_smoke(stdscr, args, y, x):
         smoke_sum += 1
 
 
-def add_d51(stdscr, x, args, window):
+def add_d51(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
     d51 = [
         [
             D51STR1,
@@ -384,7 +384,7 @@ def add_d51(stdscr, x, args, window):
     return curses.OK
 
 
-def add_c51(stdscr, x, args, window):
+def add_c51(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
     c51 = [
         [
             C51STR1,
@@ -503,7 +503,7 @@ def add_c51(stdscr, x, args, window):
     return curses.OK
 
 
-def add_sl(stdscr, x, args, window):
+def add_sl(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
     sl = [
         [LOGO1, LOGO2, LOGO3, LOGO4, LWHL11, LWHL12, DELLN],
         [LOGO1, LOGO2, LOGO3, LOGO4, LWHL21, LWHL22, DELLN],
@@ -541,7 +541,7 @@ def add_sl(stdscr, x, args, window):
     return curses.OK
 
 
-def addstr(stdscr, args, y: int, x: int, string: str):
+def addstr(stdscr: curses.window, args: Args, y: int, x: int, string: str) -> int:
     i = x
     j = 0
     while i < 0:
@@ -551,11 +551,7 @@ def addstr(stdscr, args, y: int, x: int, string: str):
             return curses.ERR
     while j < len(string):
         try:
-            if (
-                stdscr.addch(y, i, string[j], curses.color_pair(1 if args.red else 0))
-                == curses.ERR
-            ):
-                return curses.ERR
+            stdscr.addch(y, i, string[j], curses.color_pair(1 if args.red else 0))
         except curses.error:
             return curses.ERR
         except IndexError:
@@ -565,7 +561,7 @@ def addstr(stdscr, args, y: int, x: int, string: str):
     return curses.OK
 
 
-def init(stdscr):
+def init(stdscr: curses.window) -> None:
     curses.curs_set(0)
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_RED, -1)
@@ -573,7 +569,7 @@ def init(stdscr):
     stdscr.timeout(40)
 
 
-def main(stdscr, args):
+def main(stdscr: curses.window, args: Args) -> None:
     init(stdscr)
     window = Window(stdscr.getmaxyx()[0] - 1, stdscr.getmaxyx()[1] - 1)
     i = window.cols - 1
@@ -595,7 +591,6 @@ def main(stdscr, args):
         except KeyboardInterrupt:
             return
         i -= 1
-    return
 
 
 if __name__ == "__main__":
