@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# pylint: disable=missing-module-docstring, missing-function-docstring
-# pylint: disable=missing-class-docstring
+# pylint: disable=missing-docstring
 
 import sys
 import curses
@@ -369,14 +368,12 @@ def add_d51(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
     if x < -D51LENGTH:
         return curses.ERR
     y = window.rows // 2 - 4
-    a = 0
     if args.fly:
         y = (x // 7) + window.rows - (window.cols // 7) - D51HEIGHT
-        a = 1
     for i in range(D51HEIGHT + 1):
         addstr(stdscr, args, y + i, x, d51[(D51LENGTH + x) % D51PATTERNS][i])
         if x + 53 <= window.cols:
-            addstr(stdscr, args, y + i + a, x + 53, coal[i])
+            addstr(stdscr, args, y + i + int(args.fly), x + 53, coal[i])
     if args.alert:
         add_man(stdscr, args, y + 2, x + 43)
         add_man(stdscr, args, y + 2, x + 47)
