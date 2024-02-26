@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # pylint: disable=missing-docstring
 
-import sys
 import curses
+import sys
 
 D51HEIGHT = 10
 D51FUNNEL = 7
@@ -251,7 +251,7 @@ smoke_sum = 0
 
 
 def add_smoke(stdscr: curses.window, args: Args, y: int, x: int) -> None:
-    global smoke_sum, smokes
+    global smoke_sum
     if x % 4 == 0:
         for i in range(smoke_sum):
             addstr(stdscr, args, smokes[i].y, smokes[i].x, SMOKE_ERASER[smokes[i].ptrn])
