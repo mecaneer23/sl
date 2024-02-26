@@ -486,13 +486,13 @@ def add_c51(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
     if x < -C51LENGTH:
         return curses.ERR
     y = window.rows // 2 - 5
-    a = 0
+    extra_y_offset = 0
     if args.fly:
         y = (x // 7) + window.rows - (window.cols // 7) - C51HEIGHT
-        a = 1
+        extra_y_offset = 1
     for i in range(C51HEIGHT + 1):
         addstr(stdscr, args, y + i, x, c51[(C51LENGTH + x) % C51PATTERNS][i])
-        addstr(stdscr, args, y + i + a, x + 53, coal[i])
+        addstr(stdscr, args, y + i + extra_y_offset, x + 53, coal[i])
     if args.alert:
         add_man(stdscr, args, y + 3, x + 45)
         add_man(stdscr, args, y + 3, x + 49)
