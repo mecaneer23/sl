@@ -1,0 +1,3 @@
+- refactor: wrap in a class to avoid having to use global statement
+- refactor: simplify constants when possible
+- refactor: use one add function, where each train is a separate instance of the Train class
