@@ -465,7 +465,6 @@ class Train:  # pylint: disable=too-few-public-methods
             self._addstr(
                 y + i,
                 x,
-                #                       v - might need to // 3
                 train.train[(length + x) % train.patterns][i],
             )
             self._addstr(
