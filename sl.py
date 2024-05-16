@@ -301,7 +301,7 @@ class TrainInfo:  # pylint: disable=too-many-instance-attributes
     man_x_offset: int
     smokestack_height: int
     car: tuple[str, ...]
-    little_offset: int
+    length_multiplier: int
     height_divisor: int
     coal_offset: int
 
@@ -330,7 +330,7 @@ class Train:  # pylint: disable=too-few-public-methods
                 man_x_offset=43,
                 smokestack_height=D51FUNNEL,
                 car=("",),
-                little_offset=0,
+                length_multiplier=1,
                 height_divisor=7,
                 coal_offset=53,
             ),
@@ -356,7 +356,7 @@ class Train:  # pylint: disable=too-few-public-methods
                 man_x_offset=45,
                 smokestack_height=C51FUNNEL,
                 car=("",),
-                little_offset=0,
+                length_multiplier=1,
                 height_divisor=7,
                 coal_offset=53,
             ),
@@ -378,7 +378,7 @@ class Train:  # pylint: disable=too-few-public-methods
                 man_x_offset=14,
                 smokestack_height=LITTLE_FUNNEL,
                 car=(*LITTLE_CAR, LITTLE_DEL),
-                little_offset=2,
+                length_multiplier=2,
                 height_divisor=6,
                 coal_offset=21,
             ),
@@ -449,7 +449,7 @@ class Train:  # pylint: disable=too-few-public-methods
 
     def add_train(self, x: int) -> int:
         train = self._info
-        length = train.length * (self._args.little + train.little_offset)
+        length = train.length * (self._args.little + train.length_multiplier)
         if x < -length:
             return curses.ERR
         y = self._window.rows // 2 - train.y_offset
@@ -468,7 +468,7 @@ class Train:  # pylint: disable=too-few-public-methods
                 train.train[(length + x) % train.patterns][i],
             )
             self._addstr(
-                y + i + int(self._args.fly) * train.little_offset,
+                y + i + int(self._args.fly) * train.length_multiplier,
                 x + train.coal_offset,
                 train.coal[i],
             )
@@ -500,22 +500,21 @@ def init(stdscr: curses.window) -> None:
     stdscr.timeout(40)
 
 
+def get_train_type(args: Args) -> TrainType:
+    if args.little > 0:
+        return TrainType.LITTLE
+    if args.c51:
+        return TrainType.C51
+    return TrainType.D51
+
+
 def main(stdscr: curses.window, args: Args) -> None:
     init(stdscr)
     window = Window(stdscr.getmaxyx()[0] - 1, stdscr.getmaxyx()[1] - 1)
     i = window.cols - 1
-    train = Train(TrainType.D51, stdscr, window, args)
+    train = Train(get_train_type(args), stdscr, window, args)
     while True:
         try:
-            # if args.little > 0:
-            #     if add_sl(stdscr, i, args, window) == curses.ERR:
-            #         break
-            # elif args.c51:
-            #     if add_c51(stdscr, i, args, window) == curses.ERR:
-            #         break
-            # else:
-            #     if add_d51(stdscr, i, args, window) == curses.ERR:
-            #         break
             if train.add_train(i) == curses.ERR:
                 break
             stdscr.getch()
