@@ -6,11 +6,12 @@ import sys
 from dataclasses import dataclass
 from enum import Enum
 
+CTRL_C = 3
+
 D51HEIGHT = 10
 D51FUNNEL = 7
 D51LENGTH = 83
 D51PATTERNS = 6
-
 
 D51BODY = (
     "      ====        ________                ___________ ",
@@ -517,7 +518,8 @@ def main(stdscr: curses.window, args: Args) -> None:
         try:
             if train.add_train(i) == curses.ERR:
                 break
-            stdscr.getch()
+            if stdscr.getch() == CTRL_C:
+                return
             stdscr.refresh()
         except curses.error as e:
             raise e
