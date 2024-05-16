@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-# pylint: disable=missing-docstring
+"""
+SL(1): Cure your bad habit of mistyping, but with python.
+
+Original credit to mtoyoda.
+"""
 
 import curses
 import sys
@@ -241,6 +245,8 @@ SMOKE_DX = [-2, -1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3]
 
 
 class Smoke:
+    """Represent the position, pattern, and type of each smoke particle."""
+
     def __init__(self) -> None:
         self.y = 0
         self.x = 0
@@ -248,6 +254,7 @@ class Smoke:
         self.kind = 0
 
     def update(self, y: int, x: int, pattern: int, kind: int) -> None:
+        """Setter for Smoke"""
         self.y = y
         self.x = x
         self.pattern = pattern
@@ -260,6 +267,12 @@ class Smoke:
 
 
 class Args:  # pylint: disable=too-few-public-methods
+    """
+    Store command line arguments in a single convenient location.
+
+    Similar to argparse.Namespace.
+    """
+
     def __init__(self, arg: str) -> None:
         self.alert = "a" in arg
         self.little = arg.count("l")
@@ -268,10 +281,12 @@ class Args:  # pylint: disable=too-few-public-methods
         self.red = "r" in arg
 
 
-class Window:  # pylint: disable=too-few-public-methods
-    def __init__(self, rows: int, cols: int) -> None:
-        self.rows = rows
-        self.cols = cols
+@dataclass
+class Window:
+    """Represent a window in terms of rows and columns"""
+
+    rows: int
+    cols: int
 
 
 class TrainType(Enum):
@@ -284,6 +299,8 @@ class TrainType(Enum):
 
 @dataclass
 class TrainInfo:  # pylint: disable=too-many-instance-attributes
+    """Dataclass representing a train by storing a number of attributes"""
+
     train: tuple[tuple[str, ...], ...]
     coal: tuple[str, ...]
     length: int
@@ -300,6 +317,8 @@ class TrainInfo:  # pylint: disable=too-many-instance-attributes
 
 
 class Train:  # pylint: disable=too-few-public-methods
+    """Represent a renderable Train object"""
+
     def _get_train_info(self, train_type: TrainType) -> TrainInfo:
         return {
             TrainType.D51: TrainInfo(
@@ -441,6 +460,7 @@ class Train:  # pylint: disable=too-few-public-methods
         return curses.OK
 
     def add_train(self, x: int) -> int:
+        """Public render function. Display self._info at the specified `x`"""
         train = self._info
         length = train.length * (self._args.little + train.length_multiplier)
         if x < -length:
@@ -476,30 +496,19 @@ class Train:  # pylint: disable=too-few-public-methods
                 self._add_man(y + train.man_y_offset, x + train.man_x_offset + 4)
             for car in range(self._args.little):
                 self._add_man(
-                    y
-                    + train.man_y_offset
-                    + int(self._args.fly) * ((car + 1) * 2 + 2),
+                    y + train.man_y_offset + int(self._args.fly) * ((car + 1) * 2 + 2),
                     x + (train.length * car + 45),
                 )
                 self._add_man(
-                    y
-                    + train.man_y_offset
-                    + int(self._args.fly) * ((car + 1) * 2 + 2),
+                    y + train.man_y_offset + int(self._args.fly) * ((car + 1) * 2 + 2),
                     x + (train.length * car + 45) + 8,
                 )
         self._add_smoke(y - 1, x + train.smokestack_height)
         return curses.OK
 
 
-def init(stdscr: curses.window) -> None:
-    curses.curs_set(0)
-    curses.use_default_colors()
-    curses.init_pair(1, curses.COLOR_RED, -1)
-    stdscr.nodelay(True)
-    stdscr.timeout(35)
-
-
 def get_train_type(args: Args) -> TrainType:
+    """Return the type of the train based on the command line arguments"""
     if args.little > 0:
         return TrainType.LITTLE
     if args.c51:
@@ -508,7 +517,12 @@ def get_train_type(args: Args) -> TrainType:
 
 
 def main(stdscr: curses.window, args: Args) -> None:
-    init(stdscr)
+    """Entry point for Steam Locomotive"""
+    curses.curs_set(0)
+    curses.use_default_colors()
+    curses.init_pair(1, curses.COLOR_RED, -1)
+    stdscr.nodelay(True)
+    stdscr.timeout(35)
     window = Window(stdscr.getmaxyx()[0] - 1, stdscr.getmaxyx()[1] - 1)
     i = window.cols - 1
     train = Train(get_train_type(args), stdscr, window, args)
