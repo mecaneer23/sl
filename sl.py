@@ -8,9 +8,6 @@ from enum import Enum
 
 CTRL_C = 3
 
-D51HEIGHT = 10
-D51FUNNEL = 7
-D51LENGTH = 83
 D51PATTERNS = 6
 
 D51BODY = (
@@ -73,8 +70,6 @@ COAL = (
 
 COALDEL = "                              "
 
-LITTLE_HEIGHT = 6
-LITTLE_FUNNEL = 4
 LITTLE_LENGTH = 21
 LITTLE_PATTERNS = 6
 
@@ -132,9 +127,6 @@ LITTLE_CAR = (
 
 LITTLE_DEL = "                     "
 
-C51HEIGHT = 11
-C51FUNNEL = 7
-C51LENGTH = 87
 C51PATTERNS = 6
 
 C51DEL = "                                                       "
@@ -323,13 +315,13 @@ class Train:  # pylint: disable=too-few-public-methods
                     *COAL,
                     COALDEL,
                 ),
-                length=D51LENGTH,
-                height=D51HEIGHT,
+                length=83,
+                height=10,
                 patterns=D51PATTERNS,
                 y_offset=4,
                 man_y_offset=2,
                 man_x_offset=43,
-                smokestack_height=D51FUNNEL,
+                smokestack_height=7,
                 car=("",),
                 length_multiplier=1,
                 height_divisor=7,
@@ -349,13 +341,13 @@ class Train:  # pylint: disable=too-few-public-methods
                     *COAL,
                     COALDEL,
                 ),
-                length=C51LENGTH,
-                height=C51HEIGHT,
+                length=87,
+                height=11,
                 patterns=C51PATTERNS,
                 y_offset=5,
                 man_y_offset=3,
                 man_x_offset=45,
-                smokestack_height=C51FUNNEL,
+                smokestack_height=7,
                 car=("",),
                 length_multiplier=1,
                 height_divisor=7,
@@ -371,13 +363,13 @@ class Train:  # pylint: disable=too-few-public-methods
                     for i in range(LITTLE_PATTERNS)
                 ),
                 coal=(*LITTLE_COAL, LITTLE_DEL),
-                length=LITTLE_LENGTH,
-                height=LITTLE_HEIGHT,
+                length=21,
+                height=6,
                 patterns=LITTLE_PATTERNS,
                 y_offset=3,
                 man_y_offset=1,
                 man_x_offset=14,
-                smokestack_height=LITTLE_FUNNEL,
+                smokestack_height=4,
                 car=(*LITTLE_CAR, LITTLE_DEL),
                 length_multiplier=2,
                 height_divisor=6,

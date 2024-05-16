@@ -1,2 +1,1 @@
-- refactor: simplify constants when possible
 - refactor: add docstrings
