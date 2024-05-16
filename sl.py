@@ -480,15 +480,22 @@ class Train:  # pylint: disable=too-few-public-methods
                     train.car[i],
                 )
         if self._args.alert:
+            self._add_man(y + train.man_y_offset, x + train.man_x_offset)
             if self._args.little == 0:
-                self._add_man(y + train.man_y_offset, x + train.man_x_offset)
                 self._add_man(y + train.man_y_offset, x + train.man_x_offset + 4)
-            else:
-                self._add_man(y + 1, x + 14)
-                self._add_man(y + 1 + int(self._args.fly) * 4, x + 45)
-                self._add_man(y + 1 + int(self._args.fly) * 4, x + 53)
-                self._add_man(y + 1 + int(self._args.fly) * 6, x + 66)
-                self._add_man(y + 1 + int(self._args.fly) * 6, x + 74)
+            for car in range(self._args.little):
+                self._add_man(
+                    y
+                    + train.man_y_offset
+                    + int(self._args.fly) * ((car + 1) * 2 + 2),
+                    x + (train.length * car + 45),
+                )
+                self._add_man(
+                    y
+                    + train.man_y_offset
+                    + int(self._args.fly) * ((car + 1) * 2 + 2),
+                    x + (train.length * car + 45) + 8,
+                )
         self._add_smoke(y - 1, x + train.smokestack_height)
         return curses.OK
 
