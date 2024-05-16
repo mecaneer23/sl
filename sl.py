@@ -3,6 +3,8 @@
 
 import curses
 import sys
+from dataclasses import dataclass
+from enum import Enum
 
 D51HEIGHT = 10
 D51FUNNEL = 7
@@ -70,9 +72,9 @@ COAL = (
 
 COALDEL = "                              "
 
-LOGOHEIGHT = 6
-LOGOFUNNEL = 4
-LOGOLENGTH = 84
+LITTLE_HEIGHT = 6
+LITTLE_FUNNEL = 4
+LITTLE_LENGTH = 21
 LITTLE_PATTERNS = 6
 
 LITTLE_BODY = (
@@ -245,7 +247,7 @@ SMOKE_DY = [2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 SMOKE_DX = [-2, -1, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3]
 
 
-class SmokeClass:
+class Smoke:
     def __init__(self) -> None:
         self.y = 0
         self.x = 0
@@ -279,156 +281,215 @@ class Window:  # pylint: disable=too-few-public-methods
         self.cols = cols
 
 
-def add_man(stdscr: curses.window, args: Args, y: int, x: int) -> None:
-    man = [["", "(O)"], ["Help!", "\\O/"]]
-    for i in range(2):
-        addstr(stdscr, args, y + i, x, man[(LOGOLENGTH + x) // 12 % 2][i])
+class TrainType(Enum):
+    """Specify a type of train to render"""
+
+    D51 = "d51"
+    C51 = "c51"
+    LITTLE = "little"
 
 
-smokes = [SmokeClass() for _ in range(1000)]
-smoke_sum = 0
+@dataclass
+class TrainInfo:  # pylint: disable=too-many-instance-attributes
+    train: tuple[tuple[str, ...], ...]
+    coal: tuple[str, ...]
+    length: int
+    height: int
+    patterns: int
+    y_offset: int
+    man_y_offset: int
+    man_x_offset: int
+    smokestack_height: int
+    car: tuple[str, ...]
+    little_offset: int
+    height_divisor: int
+    coal_offset: int
 
 
-def add_smoke(stdscr: curses.window, args: Args, y: int, x: int) -> None:
-    global smoke_sum
-    if x % 4 == 0:
-        for i in range(smoke_sum):
-            addstr(
-                stdscr, args, smokes[i].y, smokes[i].x, SMOKE_ERASER[smokes[i].pattern]
+class Train:  # pylint: disable=too-few-public-methods
+    def _get_train_info(self, train_type: TrainType) -> TrainInfo:
+        return {
+            TrainType.D51: TrainInfo(
+                train=tuple(
+                    (
+                        *D51BODY,
+                        *D51WHL[i],
+                        D51DEL,
+                    )
+                    for i in range(D51PATTERNS)
+                ),
+                coal=(
+                    *COAL,
+                    COALDEL,
+                ),
+                length=D51LENGTH,
+                height=D51HEIGHT,
+                patterns=D51PATTERNS,
+                y_offset=4,
+                man_y_offset=2,
+                man_x_offset=43,
+                smokestack_height=D51FUNNEL,
+                car=("",),
+                little_offset=0,
+                height_divisor=7,
+                coal_offset=53,
+            ),
+            TrainType.C51: TrainInfo(
+                train=tuple(
+                    (
+                        *C51BODY,
+                        *C51WHL[i],
+                        C51DEL,
+                    )
+                    for i in range(C51PATTERNS)
+                ),
+                coal=(
+                    COALDEL,
+                    *COAL,
+                    COALDEL,
+                ),
+                length=C51LENGTH,
+                height=C51HEIGHT,
+                patterns=C51PATTERNS,
+                y_offset=5,
+                man_y_offset=3,
+                man_x_offset=45,
+                smokestack_height=C51FUNNEL,
+                car=("",),
+                little_offset=0,
+                height_divisor=7,
+                coal_offset=53,
+            ),
+            TrainType.LITTLE: TrainInfo(
+                train=tuple(
+                    (
+                        *LITTLE_BODY,
+                        *LITTLE_WHL[i],
+                        LITTLE_DEL,
+                    )
+                    for i in range(LITTLE_PATTERNS)
+                ),
+                coal=(*LITTLE_COAL, LITTLE_DEL),
+                length=LITTLE_LENGTH,
+                height=LITTLE_HEIGHT,
+                patterns=LITTLE_PATTERNS,
+                y_offset=3,
+                man_y_offset=1,
+                man_x_offset=14,
+                smokestack_height=LITTLE_FUNNEL,
+                car=(*LITTLE_CAR, LITTLE_DEL),
+                little_offset=2,
+                height_divisor=6,
+                coal_offset=21,
+            ),
+        }[train_type]
+
+    def __init__(
+        self,
+        type_: TrainType,
+        stdscr: curses.window,
+        window: Window,
+        args: Args,
+    ) -> None:
+        self._smokes = [Smoke() for _ in range(window.cols)]
+        self._smoke_sum = 0
+        self._stdscr = stdscr
+        self._window = window
+        self._args = args
+        self._info = self._get_train_info(type_)
+
+    def _add_smoke(self, y: int, x: int) -> None:
+        if x % 4 == 0:
+            for i in range(self._smoke_sum):
+                self._addstr(
+                    self._smokes[i].y,
+                    self._smokes[i].x,
+                    SMOKE_ERASER[self._smokes[i].pattern],
+                )
+                self._smokes[i].y -= SMOKE_DY[self._smokes[i].pattern]
+                self._smokes[i].x += SMOKE_DX[self._smokes[i].pattern]
+                self._smokes[i].pattern += 1 if (self._smokes[i].pattern < 15) else 0
+                self._addstr(
+                    self._smokes[i].y,
+                    self._smokes[i].x,
+                    SMOKE[self._smokes[i].kind][self._smokes[i].pattern],
+                )
+            self._addstr(y, x, SMOKE[self._smoke_sum % 2][0])
+            self._smokes[self._smoke_sum].update(y, x, 0, self._smoke_sum % 2)
+            self._smoke_sum += 1
+
+    def _add_man(self, y: int, x: int) -> None:
+        man = [["", "(O)"], ["Help!", "\\O/"]]
+        for i in range(2):
+            self._addstr(y + i, x, man[(LITTLE_LENGTH * 4 + x) // 12 % 2][i])
+
+    def _addstr(self, y: int, x: int, string: str) -> int:
+        i = x
+        j = 0
+        while i < 0:
+            i += 1
+            j += 1
+            if j == len(string):
+                return curses.ERR
+        while j < len(string):
+            try:
+                self._stdscr.addch(
+                    y,
+                    i,
+                    string[j],
+                    curses.color_pair(1 if self._args.red else 0),
+                )
+            except curses.error:
+                return curses.ERR
+            except IndexError:
+                return curses.ERR
+            i += 1
+            j += 1
+        return curses.OK
+
+    def add_train(self, x: int) -> int:
+        train = self._info
+        length = train.length * (self._args.little + train.little_offset)
+        if x < -length:
+            return curses.ERR
+        y = self._window.rows // 2 - train.y_offset
+        if self._args.fly:
+            y = (
+                (x // train.height_divisor)
+                + self._window.rows
+                - (self._window.cols // train.height_divisor)
+                - train.height
             )
-            smokes[i].y -= SMOKE_DY[smokes[i].pattern]
-            smokes[i].x += SMOKE_DX[smokes[i].pattern]
-            smokes[i].pattern += 1 if (smokes[i].pattern < 15) else 0
-            addstr(
-                stdscr,
-                args,
-                smokes[i].y,
-                smokes[i].x,
-                SMOKE[smokes[i].kind][smokes[i].pattern],
+        for i in range(train.height + 1):
+            self._addstr(
+                y + i,
+                x,
+                #                       v - might need to // 3
+                train.train[(length + x) % train.patterns][i],
             )
-        addstr(stdscr, args, y, x, SMOKE[smoke_sum % 2][0])
-        smokes[smoke_sum].update(y, x, 0, smoke_sum % 2)
-        smoke_sum += 1
-
-
-def add_d51(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
-    d51 = tuple(
-        (
-            *D51BODY,
-            *D51WHL[i],
-            D51DEL,
-        )
-        for i in range(D51PATTERNS)
-    )
-    coal = [
-        *COAL,
-        COALDEL,
-    ]
-
-    if x < -D51LENGTH:
-        return curses.ERR
-    y = window.rows // 2 - 4
-    if args.fly:
-        y = (x // 7) + window.rows - (window.cols // 7) - D51HEIGHT
-    for i in range(D51HEIGHT + 1):
-        addstr(stdscr, args, y + i, x, d51[(D51LENGTH + x) % D51PATTERNS][i])
-        if x + 53 <= window.cols:
-            addstr(stdscr, args, y + i + int(args.fly), x + 53, coal[i])
-    if args.alert:
-        add_man(stdscr, args, y + 2, x + 43)
-        add_man(stdscr, args, y + 2, x + 47)
-    add_smoke(stdscr, args, y - 1, x + D51FUNNEL - 1)
-    return curses.OK
-
-
-def add_c51(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
-    c51 = tuple(
-        (
-            *C51BODY,
-            *C51WHL[i],
-            C51DEL,
-        )
-        for i in range(C51PATTERNS)
-    )
-    coal = [
-        COALDEL,
-        *COAL,
-        COALDEL,
-    ]
-
-    if x < -C51LENGTH:
-        return curses.ERR
-    y = window.rows // 2 - 5
-    extra_y_offset = 0
-    if args.fly:
-        y = (x // 7) + window.rows - (window.cols // 7) - C51HEIGHT
-        extra_y_offset = 1
-    for i in range(C51HEIGHT + 1):
-        addstr(stdscr, args, y + i, x, c51[(C51LENGTH + x) % C51PATTERNS][i])
-        addstr(stdscr, args, y + i + extra_y_offset, x + 53, coal[i])
-    if args.alert:
-        add_man(stdscr, args, y + 3, x + 45)
-        add_man(stdscr, args, y + 3, x + 49)
-    add_smoke(stdscr, args, y - 1, x + C51FUNNEL)
-    return curses.OK
-
-
-def add_sl(stdscr: curses.window, x: int, args: Args, window: Window) -> int:
-    sl = tuple(
-        (
-            *LITTLE_BODY,
-            *LITTLE_WHL[i],
-            LITTLE_DEL,
-        )
-        for i in range(LITTLE_PATTERNS)
-    )
-    coal = (*LITTLE_COAL, LITTLE_DEL)
-    car = (*LITTLE_CAR, LITTLE_DEL)
-    count = 2 if args.alert else args.little
-    logo_length = 21 * (count + 2)
-    if x < -logo_length:
-        return curses.ERR
-    y = window.rows // 2 - 3
-    a, b, c = 0, 0, 0
-    b_mod = 0
-    if args.fly:
-        y = (x // 6) + window.rows - (window.cols // 6) - LOGOHEIGHT
-        a, b, c = 2, 4, 6
-    for i in range(LOGOHEIGHT + 1):
-        addstr(stdscr, args, y + i, x, sl[(logo_length + x) // 3 % LITTLE_PATTERNS][i])
-        addstr(stdscr, args, y + i + a, x + 21, coal[i])
-        for car_index in range(count):
-            if args.fly:
-                b_mod = b + (2 * car_index)
-            addstr(stdscr, args, y + i + b_mod, x + (car_index + 2) * 21, car[i])
-    if args.alert:
-        add_man(stdscr, args, y + 1, x + 14)
-        add_man(stdscr, args, y + 1 + b, x + 45)
-        add_man(stdscr, args, y + 1 + b, x + 53)
-        add_man(stdscr, args, y + 1 + c, x + 66)
-        add_man(stdscr, args, y + 1 + c, x + 74)
-    add_smoke(stdscr, args, y - 1, x + LOGOFUNNEL)
-    return curses.OK
-
-
-def addstr(stdscr: curses.window, args: Args, y: int, x: int, string: str) -> int:
-    i = x
-    j = 0
-    while i < 0:
-        i += 1
-        j += 1
-        if j == len(string):
-            return curses.ERR
-    while j < len(string):
-        try:
-            stdscr.addch(y, i, string[j], curses.color_pair(1 if args.red else 0))
-        except curses.error:
-            return curses.ERR
-        except IndexError:
-            return curses.ERR
-        i += 1
-        j += 1
-    return curses.OK
+            self._addstr(
+                y + i + int(self._args.fly) * train.little_offset,
+                x + train.coal_offset,
+                train.coal[i],
+            )
+            for car in range(self._args.little):
+                self._addstr(
+                    y + i + int(self._args.fly) * (2 + 2 * car),
+                    x + (car + 2) * length,
+                    train.car[i],
+                )
+        if self._args.alert:
+            if self._args.little == 0:
+                self._add_man(y + train.man_y_offset, x + train.man_x_offset)
+                self._add_man(y + train.man_y_offset, x + train.man_x_offset + 4)
+            else:
+                self._add_man(y + 1, x + 14)
+                self._add_man(y + 1 + int(self._args.fly) * 2, x + 45)
+                self._add_man(y + 1 + int(self._args.fly) * 2, x + 53)
+                self._add_man(y + 1 + int(self._args.fly) * 4, x + 66)
+                self._add_man(y + 1 + int(self._args.fly) * 4, x + 74)
+        self._add_smoke(y - 1, x + train.smokestack_height)
+        return curses.OK
 
 
 def init(stdscr: curses.window) -> None:
@@ -443,17 +504,20 @@ def main(stdscr: curses.window, args: Args) -> None:
     init(stdscr)
     window = Window(stdscr.getmaxyx()[0] - 1, stdscr.getmaxyx()[1] - 1)
     i = window.cols - 1
+    train = Train(TrainType.D51, stdscr, window, args)
     while True:
         try:
-            if args.little > 0:
-                if add_sl(stdscr, i, args, window) == curses.ERR:
-                    break
-            elif args.c51:
-                if add_c51(stdscr, i, args, window) == curses.ERR:
-                    break
-            else:
-                if add_d51(stdscr, i, args, window) == curses.ERR:
-                    break
+            # if args.little > 0:
+            #     if add_sl(stdscr, i, args, window) == curses.ERR:
+            #         break
+            # elif args.c51:
+            #     if add_c51(stdscr, i, args, window) == curses.ERR:
+            #         break
+            # else:
+            #     if add_d51(stdscr, i, args, window) == curses.ERR:
+            #         break
+            if train.add_train(i) == curses.ERR:
+                break
             stdscr.getch()
             stdscr.refresh()
         except curses.error as e:
