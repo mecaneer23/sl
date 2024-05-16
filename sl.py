@@ -475,8 +475,8 @@ class Train:  # pylint: disable=too-few-public-methods
             )
             for car in range(self._args.little):
                 self._addstr(
-                    y + i + int(self._args.fly) * (2 + 2 * car),
-                    x + (car + 2) * length,
+                    y + i + int(self._args.fly) * (4 + 2 * car),
+                    x + (car + 2) * train.length,
                     train.car[i],
                 )
         if self._args.alert:
@@ -485,10 +485,10 @@ class Train:  # pylint: disable=too-few-public-methods
                 self._add_man(y + train.man_y_offset, x + train.man_x_offset + 4)
             else:
                 self._add_man(y + 1, x + 14)
-                self._add_man(y + 1 + int(self._args.fly) * 2, x + 45)
-                self._add_man(y + 1 + int(self._args.fly) * 2, x + 53)
-                self._add_man(y + 1 + int(self._args.fly) * 4, x + 66)
-                self._add_man(y + 1 + int(self._args.fly) * 4, x + 74)
+                self._add_man(y + 1 + int(self._args.fly) * 4, x + 45)
+                self._add_man(y + 1 + int(self._args.fly) * 4, x + 53)
+                self._add_man(y + 1 + int(self._args.fly) * 6, x + 66)
+                self._add_man(y + 1 + int(self._args.fly) * 6, x + 74)
         self._add_smoke(y - 1, x + train.smokestack_height)
         return curses.OK
 
@@ -498,7 +498,7 @@ def init(stdscr: curses.window) -> None:
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_RED, -1)
     stdscr.nodelay(True)
-    stdscr.timeout(40)
+    stdscr.timeout(35)
 
 
 def get_train_type(args: Args) -> TrainType:
