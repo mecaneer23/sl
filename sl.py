@@ -184,6 +184,36 @@ C51WHL = (
     ),
 )
 
+TGV_PATTERNS = 2
+
+TGV_DEL = "                                                         "
+
+TGV_BODY = (
+    "                             ______________   /          ",
+    "                ____________/______________|__\\_______   ",
+    "          _____/  |IIIIIIIIIII|_______________________|  ",
+    "       __/__/_|_|       ______________________________|  ",
+    "    __/       | |      /         ||||||||||||  TGV || |  ",
+    "   />  []     | |    /___________||||||||||||______|| |  ",
+    "  \\_==================================================|  ",
+)
+
+TGV_WHL = (
+    ("    |___/==0==0==|_________________________/===0==0==\\|  ",),
+    ("    |___/0==0==0=|_________________________/=0==0==0=\\|  ",),
+)
+
+TGV_CAR = (
+    "  ___________                                            ",
+    "  |_====____|\\________________________________________   ",
+    "o|  ||||         ___                                  |  ",
+    "H|______________|___|_________________________________|  ",
+    "H|  |||| |[]|   |[]1|    []   [  ] [  ] [  ] [  ]     |  ",
+    "H|__||||_|__|___|___|_________________________________|  ",
+    "D|==============|===|=================================|  ",
+    " _/ 0==0  |____________________________________/    0=|  ",
+)
+
 SMOKE = [
     [
         "(   )",
@@ -279,6 +309,7 @@ class Args:  # pylint: disable=too-few-public-methods
         self.fly = "F" in arg
         self.c51 = "c" in arg
         self.red = "r" in arg
+        self.tgv = "G" in arg
 
 
 @dataclass
@@ -295,6 +326,7 @@ class TrainType(Enum):
     D51 = "d51"
     C51 = "c51"
     LITTLE = "little"
+    TGV = "tgv"
 
 
 @dataclass
@@ -309,11 +341,12 @@ class TrainInfo:  # pylint: disable=too-many-instance-attributes
     y_offset: int
     man_y_offset: int
     man_x_offset: int
-    smokestack_height: int
-    car: tuple[str, ...]
-    length_multiplier: int
     height_divisor: int
     coal_offset: int
+    car: tuple[str, ...] = ("",)
+    smokestack_height: int = 0
+    length_multiplier: int = 1
+    wheel_count_divisor: int = 1
 
 
 class Train:  # pylint: disable=too-few-public-methods
@@ -341,8 +374,6 @@ class Train:  # pylint: disable=too-few-public-methods
                 man_y_offset=2,
                 man_x_offset=43,
                 smokestack_height=7,
-                car=("",),
-                length_multiplier=1,
                 height_divisor=7,
                 coal_offset=53,
             ),
@@ -367,8 +398,6 @@ class Train:  # pylint: disable=too-few-public-methods
                 man_y_offset=3,
                 man_x_offset=45,
                 smokestack_height=7,
-                car=("",),
-                length_multiplier=1,
                 height_divisor=7,
                 coal_offset=53,
             ),
@@ -394,6 +423,26 @@ class Train:  # pylint: disable=too-few-public-methods
                 height_divisor=6,
                 coal_offset=21,
             ),
+            TrainType.TGV: TrainInfo(
+                train=tuple(
+                    (
+                        *TGV_BODY,
+                        *TGV_WHL[i],
+                        TGV_DEL,
+                    )
+                    for i in range(TGV_PATTERNS)
+                ),
+                coal=(*TGV_CAR, TGV_DEL),
+                length=114,
+                height=8,
+                patterns=TGV_PATTERNS,
+                y_offset=5,
+                height_divisor=7,
+                wheel_count_divisor=2,
+                coal_offset=55,
+                man_y_offset=2,
+                man_x_offset=14,
+            ),
         }[train_type]
 
     def __init__(
@@ -408,7 +457,8 @@ class Train:  # pylint: disable=too-few-public-methods
         self._stdscr = stdscr
         self._window = window
         self._args = args
-        self._info = self._get_train_info(type_)
+        self._type = type_
+        self._info = self._get_train_info(self._type)
 
     def _add_smoke(self, y: int, x: int) -> None:
         if x % 4 == 0:
@@ -438,6 +488,11 @@ class Train:  # pylint: disable=too-few-public-methods
     def _addstr(self, y: int, x: int, string: str) -> int:
         i = x
         j = 0
+        color = 0
+        if self._args.tgv:
+            color = 2
+        if self._args.red:
+            color = 1
         while i < 0:
             i += 1
             j += 1
@@ -449,7 +504,7 @@ class Train:  # pylint: disable=too-few-public-methods
                     y,
                     i,
                     string[j],
-                    curses.color_pair(1 if self._args.red else 0),
+                    curses.color_pair(color),
                 )
             except curses.error:
                 return curses.ERR
@@ -477,7 +532,9 @@ class Train:  # pylint: disable=too-few-public-methods
             self._addstr(
                 y + i,
                 x,
-                train.train[(length + x) % train.patterns][i],
+                train.train[(length + x) // train.wheel_count_divisor % train.patterns][
+                    i
+                ],
             )
             self._addstr(
                 y + i + int(self._args.fly) * train.length_multiplier,
@@ -492,7 +549,10 @@ class Train:  # pylint: disable=too-few-public-methods
                 )
         if self._args.alert:
             self._add_man(y + train.man_y_offset, x + train.man_x_offset)
-            if self._args.little == 0:
+            if self._type == TrainType.TGV:
+                for offset in range(85, 101, 5):
+                    self._add_man(y + int(self._args.fly) + train.man_y_offset + 1, x + offset)
+            if self._type in (TrainType.D51, TrainType.C51):
                 self._add_man(y + train.man_y_offset, x + train.man_x_offset + 4)
             for car in range(self._args.little):
                 self._add_man(
@@ -503,7 +563,8 @@ class Train:  # pylint: disable=too-few-public-methods
                     y + train.man_y_offset + int(self._args.fly) * ((car + 1) * 2 + 2),
                     x + (train.length * car + 45) + 8,
                 )
-        self._add_smoke(y - 1, x + train.smokestack_height)
+        if self._type != TrainType.TGV:
+            self._add_smoke(y - 1, x + train.smokestack_height)
         return curses.OK
 
 
@@ -513,6 +574,8 @@ def get_train_type(args: Args) -> TrainType:
         return TrainType.LITTLE
     if args.c51:
         return TrainType.C51
+    if args.tgv:
+        return TrainType.TGV
     return TrainType.D51
 
 
@@ -521,8 +584,9 @@ def main(stdscr: curses.window, args: Args) -> None:
     curses.curs_set(0)
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_RED, -1)
+    curses.init_pair(2, curses.COLOR_YELLOW, -1)
     stdscr.nodelay(True)
-    stdscr.timeout(35)
+    stdscr.timeout(20 if args.tgv else 35)
     window = Window(stdscr.getmaxyx()[0] - 1, stdscr.getmaxyx()[1] - 1)
     i = window.cols - 1
     train = Train(get_train_type(args), stdscr, window, args)

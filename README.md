@@ -14,7 +14,7 @@ sl - display animations aimed to correct users who accidentally enter **sl** ins
 
 ## Synopsis
 
-**sl** \[ **-alFcr** \]
+**sl** \[ **-acFGlr** \]
 
 ## Description
 
@@ -26,9 +26,10 @@ mistyping. SL stands for Steam Locomotive.
 | Flag   | Description                                                                            |
 | ------ | -------------------------------------------------------------------------------------- |
 | **-a** | An accident is occurring. People cry for help.                                         |
-| **-l** | Little version. The more 'l's you add, the more passenger cars are added to the train. |
-| **-F** | It flies.                                                                              |
 | **-c** | Different SL. C51 appears instead of D51.                                              |
+| **-F** | It flies.                                                                              |
+| **-G** | Different SL. Yellow TGV appears rather than D51.                                      |
+| **-l** | Little version. The more 'l's you add, the more passenger cars are added to the train. |
 | **-r** | Make the train red. Can be combined with any other options                             |
 
 ## See Also
