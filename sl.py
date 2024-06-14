@@ -488,11 +488,6 @@ class Train:  # pylint: disable=too-few-public-methods
     def _addstr(self, y: int, x: int, string: str) -> int:
         i = x
         j = 0
-        color = 0
-        if self._args.tgv:
-            color = 2
-        if self._args.red:
-            color = 1
         while i < 0:
             i += 1
             j += 1
@@ -504,7 +499,6 @@ class Train:  # pylint: disable=too-few-public-methods
                     y,
                     i,
                     string[j],
-                    curses.color_pair(color),
                 )
             except curses.error:
                 return curses.ERR
@@ -513,6 +507,13 @@ class Train:  # pylint: disable=too-few-public-methods
             i += 1
             j += 1
         return curses.OK
+
+    def _get_color(self) -> int:
+        if self._args.red:
+            return 1
+        if self._args.tgv:
+            return 2
+        return 0
 
     def add_train(self, x: int) -> int:
         """Public render function. Display self._info at the specified `x`"""
@@ -528,6 +529,7 @@ class Train:  # pylint: disable=too-few-public-methods
                 - (self._window.cols // train.height_divisor)
                 - train.height
             )
+        self._stdscr.attron(curses.color_pair(self._get_color()))
         for i in range(train.height + 1):
             self._addstr(
                 y + i,
@@ -547,11 +549,14 @@ class Train:  # pylint: disable=too-few-public-methods
                     x + (car + 2) * train.length,
                     train.car[i],
                 )
+        self._stdscr.attroff(curses.color_pair(self._get_color()))
         if self._args.alert:
             self._add_man(y + train.man_y_offset, x + train.man_x_offset)
             if self._type == TrainType.TGV:
                 for offset in range(85, 101, 5):
-                    self._add_man(y + int(self._args.fly) + train.man_y_offset + 1, x + offset)
+                    self._add_man(
+                        y + int(self._args.fly) + train.man_y_offset + 1, x + offset
+                    )
             if self._type in (TrainType.D51, TrainType.C51):
                 self._add_man(y + train.man_y_offset, x + train.man_x_offset + 4)
             for car in range(self._args.little):
