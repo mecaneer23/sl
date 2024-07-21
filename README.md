@@ -1,4 +1,4 @@
-# SL(1): Cure your bad habit of mistyping
+# SL: Cure your bad habit of mistyping
 
 ![Locomotive](sl.png)
 
@@ -36,7 +36,7 @@ mistyping. SL stands for Steam Locomotive.
 
 ## See Also
 
-**ls**(1)
+**ls**
 
 ## Bugs
 
