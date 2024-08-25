@@ -23,6 +23,12 @@ sl - display animations aimed to correct users who accidentally enter **sl** ins
 **sl** is a highly advanced animation program for curing your bad habit of
 mistyping. SL stands for Steam Locomotive.
 
+## Running without installation
+
+```bash
+python3 <(wget -qO- https://raw.githubusercontent.com/mecaneer23/sl/main/sl.py)
+```
+
 ## Options
 
 | Flag   | Description                                                                            |
