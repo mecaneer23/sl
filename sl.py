@@ -5,7 +5,6 @@ SL(1): Cure your bad habit of mistyping, but with python.
 Original credit to mtoyoda.
 """
 
-# import acurses as curses
 import curses
 import sys
 from dataclasses import dataclass
@@ -215,6 +214,7 @@ TGV_CAR = (
     " _/ 0==0  |____________________________________/    0=|  ",
 )
 
+SMOKE_PATTERN_LENGTH = 16
 SMOKE = [
     [
         "(   )",
@@ -471,7 +471,11 @@ class Train:  # pylint: disable=too-few-public-methods
                 )
                 self._smokes[i].y -= SMOKE_DY[self._smokes[i].pattern]
                 self._smokes[i].x += SMOKE_DX[self._smokes[i].pattern]
-                self._smokes[i].pattern += 1 if (self._smokes[i].pattern < 15) else 0
+                self._smokes[i].pattern += (
+                    1
+                    if (self._smokes[i].pattern < SMOKE_PATTERN_LENGTH - 1)
+                    else 0
+                )
                 self._addstr(
                     self._smokes[i].y,
                     self._smokes[i].x,
@@ -535,9 +539,9 @@ class Train:  # pylint: disable=too-few-public-methods
             self._addstr(
                 y + i,
                 x,
-                train.train[(length + x) // train.wheel_count_divisor % train.patterns][
-                    i
-                ],
+                train.train[
+                    (length + x) // train.wheel_count_divisor % train.patterns
+                ][i],
             )
             self._addstr(
                 y + i + int(self._args.fly) * train.length_multiplier,
@@ -556,17 +560,25 @@ class Train:  # pylint: disable=too-few-public-methods
             if self._type == TrainType.TGV:
                 for offset in range(85, 101, 5):
                     self._add_man(
-                        y + int(self._args.fly) + train.man_y_offset + 1, x + offset
+                        y + int(self._args.fly) + train.man_y_offset + 1,
+                        x + offset,
                     )
             if self._type in (TrainType.D51, TrainType.C51):
-                self._add_man(y + train.man_y_offset, x + train.man_x_offset + 4)
+                self._add_man(
+                    y + train.man_y_offset,
+                    x + train.man_x_offset + 4,
+                )
             for car in range(self._args.little):
                 self._add_man(
-                    y + train.man_y_offset + int(self._args.fly) * ((car + 1) * 2 + 2),
+                    y
+                    + train.man_y_offset
+                    + int(self._args.fly) * ((car + 1) * 2 + 2),
                     x + (train.length * car + 45),
                 )
                 self._add_man(
-                    y + train.man_y_offset + int(self._args.fly) * ((car + 1) * 2 + 2),
+                    y
+                    + train.man_y_offset
+                    + int(self._args.fly) * ((car + 1) * 2 + 2),
                     x + (train.length * car + 45) + 8,
                 )
         if self._type != TrainType.TGV:
@@ -591,7 +603,7 @@ def main(stdscr: curses.window, args: Args) -> None:
     curses.use_default_colors()
     curses.init_pair(1, curses.COLOR_RED, -1)
     curses.init_pair(2, curses.COLOR_YELLOW, -1)
-    stdscr.nodelay(True)
+    stdscr.nodelay(True)  # noqa: FBT003
     stdscr.timeout(20 if args.tgv else 35)
     window = Window(stdscr.getmaxyx()[0] - 1, stdscr.getmaxyx()[1] - 1)
     i = window.cols - 1
@@ -604,7 +616,7 @@ def main(stdscr: curses.window, args: Args) -> None:
                 return
             stdscr.refresh()
         except curses.error as e:
-            raise e
+            raise curses.error from e
         except KeyboardInterrupt:
             return
         i -= 1
@@ -614,6 +626,8 @@ if __name__ == "__main__":
     curses.wrapper(
         main,
         Args(
-            sys.argv[1][1:] if len(sys.argv) > 1 and sys.argv[1].startswith("-") else ""
+            sys.argv[1][1:]
+            if len(sys.argv) > 1 and sys.argv[1].startswith("-")
+            else "",
         ),
     )
