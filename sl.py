@@ -507,8 +507,6 @@ class Train:  # pylint: disable=too-few-public-methods
                 )
             except curses.error:
                 return curses.ERR
-            except IndexError:
-                return curses.ERR
             i += 1
             j += 1
         return curses.OK
