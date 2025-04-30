@@ -5,6 +5,7 @@ SL(1): Cure your bad habit of mistyping, but with python.
 Original credit to mtoyoda.
 """
 
+# import acurses as curses
 import curses
 import sys
 from dataclasses import dataclass
@@ -488,11 +489,11 @@ class Train:  # pylint: disable=too-few-public-methods
     def _addstr(self, y: int, x: int, string: str) -> int:
         i = x
         j = 0
-        while i < 0:
-            i += 1
-            j += 1
-            if j == len(string):
-                return curses.ERR
+        if x < 0:
+            j = -x
+            i = 0
+        if j == len(string):
+            return curses.ERR
         while j < len(string):
             try:
                 self._stdscr.addch(
